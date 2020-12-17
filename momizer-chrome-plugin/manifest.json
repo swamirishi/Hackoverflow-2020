@@ -18,7 +18,7 @@
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyb8xWnC7DthLH8h1G8Hjc9KdazB78YPn2osJCEgsHXykseTYlh1vDndXSJm2Fw2z97PerxTz+28aaE3+RcX06rU/W3FGv0BvgZvQaNL5YIymgT82ViKn1U+SOt5r7XfyiqKq1KtR6D8u/psyGEsonzuizVD9GchH1HdcdiK6j+rHO/eXR3XQAPyTFA/r071B2GDSDDv/zRDL80noM4rNM8mG5scKYn74KmkezeGjD0pSpFh0d74Njtc8MMffwUOCwmEMiLwvMnzh+fJUUsQRi4SoYXJ8UUAslx9Hh7kPwMMS0mZCLkqTcYqhRsO4Sa2iHJhyS/0lnN6KSanp2DZI5QIDAQAB",
    "manifest_version": 2,
    "name": "Momizer Google Meet - Auto MoM Assistance",
-   "permissions": [  ],
+   "permissions": [ "http://localhost/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "1.0.7",
    "web_accessible_resources": [ "scripts/script.js", "scripts/script_post.js", "scripts/print.jpg", "scripts/print.css", "scripts/edit.png" ]

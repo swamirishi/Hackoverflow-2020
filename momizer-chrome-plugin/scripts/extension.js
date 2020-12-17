@@ -20,6 +20,9 @@ var old_obj=null;
 var flush=null;
 var zebra_stripe=0;
 
+
+
+
 function getElementByXpath(path) {
   return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
@@ -273,7 +276,21 @@ function process_realtime(new_obj)
       head.find('div').first().css("vertical-align","text-bottom");
       head.find('div').first().html(head.find('div').first().html()+" - "+time);
       head.css("background-color",zebra_css);
-      
+      var xhr = new XMLHttpRequest();
+      var url = "http://127.0.0.1:5000/meeting/logs/hi";
+      xhr.open("POST", url, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("Accept", "application/json")
+      xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText);
+          console.log(json);
+        }
+      };
+      var data = JSON.stringify({"hello":123});
+      xhr.send(data);
+
       loose_text='';
       var myEle = document.getElementById("notes");  
       if(head.text()!==""&&myEle)
