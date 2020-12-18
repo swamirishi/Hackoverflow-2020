@@ -26,6 +26,14 @@ var zebra_stripe=0;
 var momiser_meeting_id = Date.now();
 var momiser_service_endpoint = 'http://localhost:9090'
 var log_dialogue_url = momiser_service_endpoint+'/hackday/log'
+var generate_mom_url = momiser_service_endpoint+'/hackday/{meeting_id}/generateMoM';
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 
 //-------------------------------- HTTP functions ------------------------------
@@ -40,7 +48,7 @@ var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           var json = JSON.parse(xhr.responseText);
-          callback(json)
+          return callback(json)
         }
       };
       xhr.send(JSON.stringify(jsonRequest));
@@ -78,12 +86,22 @@ function http_put(url,jsonRequest,callback){
  //-------------------------------------
 function simple_test_logger(response){
   console.log(response);
+  return response;
 }
 
-function log_dialogue(user,content){
-  console.log(user+"\t"+content)
-  http_post(log_dialogue_url,{"userName":user,"content":content,"meetingId":momiser_meeting_id},simple_test_logger)
+function log_dialogue(user,uuid){
+  http_post(log_dialogue_url,{"userName":user,"content":document.getElementById(uuid).innerText.split("\n").slice(1).join(" "),"meetingId":momiser_meeting_id},simple_test_logger)
 }
+
+
+function alert_call(response){
+  alert(JSON.stringify(response));
+}
+function generate_mom(){
+  return http_post(generate_mom_url.replace("{meeting_id}",momiser_meeting_id),{},alert_call)
+}
+
+
 
 
 //------------------- Hackday functions End -------------------------
@@ -194,7 +212,9 @@ const callEnded = setInterval(() => {
       
     //add the post call section
     let postmessage=getElementByXpath(x_path_postmessage);
-    postmessage.textContent ="You left the meeting. Take some time out to review your notes and save what you need";
+    generate_mom()
+
+    postmessage.textContent ="You left the meeting. Take some time out to review your notes and save what you need. Pushed to confluence & link would be alerted";
     var node = document.createElement("div");     
     node.id="notes_container_post";
     node.style.padding="10px";
@@ -346,21 +366,27 @@ function process_realtime(new_obj)
         zebra_css="rgba(121,0,107,0.15)";
 
       }
+      const uuid = uuidv4();
+      const uuid1 = uuidv4();
       current_speaker = head.find('div').first().html()
-      content = Object.assign({},{"val": loose_text});
-      head.find('div').first().after("<div style='"+zebra_css+";'>"+loose_text+"</div><div style='float:right; max-width:24px;'><img style='cursor:pointer; max-width:24px;' class='inline_edit' src='"+chrome.runtime.getURL('scripts/edit.png')+"' /></div>");
+      const content = "<div style='"+zebra_css+";'>"+loose_text+"</div><div style='float:right; max-width:24px;'><img style='cursor:pointer; max-width:24px;' class='inline_edit' src='"+chrome.runtime.getURL('scripts/edit.png')+"' /></div>"
+      head.find('div').first().after(content);
       head.find('div').first().css("display","inline");
       head.find('div').first().css("line-height","40px");
       head.find('div').first().css("vertical-align","text-bottom");
       head.find('div').first().html(head.find('div').first().html()+" - "+time);
       head.css("background-color",zebra_css);
-      log_dialogue(current_speaker,content["val"])
-      loose_text='';
+
+
       var myEle = document.getElementById("notes");  
       if(head.text()!==""&&myEle)
       {
+        head[0].id = uuid;
+        myEle.appendChild(head[0]);
+        log_dialogue(current_speaker,uuid)
+      }
+      loose_text='';
 
-        myEle.appendChild(head[0]);}
       
       head=null;
       notes_container=$("#notes_container").html();
