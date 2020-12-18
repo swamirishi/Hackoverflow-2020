@@ -4,9 +4,10 @@ var x_path_captions="/html/body/div[1]/c-wiz/div[1]/div/div[8]/div[3]/div[5]";
 
 var x_path_captionsbutton="/html/body/div[1]/c-wiz/div[1]/div/div[8]/div[3]/div[9]/div[3]/div[2]/div/span/span/div";
 var x_path_endcallbutton="/html/body/div[1]/c-wiz/div[1]/div/div[8]/div[3]/div[9]/div[2]/div[2]/div/div[1]";
-var x_path_body="/html/body/div[1]/c-wiz/div[1]/div/div[8]/div[3]/div[1]/div[1]";
+var x_path_body=         "/html/body/div[1]/c-wiz/div[1]/div/div[8]/div[3]/div[1]/div[1]";
 var x_path_rejoin="/html/body/div[1]/c-wiz/div/div[3]/div[1]";
 var x_path_postmessage="/html/body/div[1]/c-wiz/div/div[1]";
+
 
 
 var meeting_id='';
@@ -19,6 +20,81 @@ var loose_text='';
 var old_obj=null;
 var flush=null;
 var zebra_stripe=0;
+
+
+// Hackday Functions ----------------------------------------------//
+var momiser_meeting_id = Date.now();
+var momiser_service_endpoint = 'http://localhost:9090'
+var log_dialogue_url = momiser_service_endpoint+'/hackday/log'
+
+
+//-------------------------------- HTTP functions ------------------------------
+function http_post(url,jsonRequest,callback){
+var xhr = new XMLHttpRequest();
+      xhr.open("POST", url, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("Accept", "application/json")
+      xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+
+
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText);
+          callback(json)
+        }
+      };
+      xhr.send(JSON.stringify(jsonRequest));
+}
+
+function http_get(url,callback){
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Accept", "application/json")
+  xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var json = JSON.parse(xhr.responseText);
+      callback(json)
+    }
+  };
+  xhr.send(null);
+}
+
+function http_put(url,jsonRequest,callback){
+  var xhr = new XMLHttpRequest();
+  xhr.open("PUT", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Accept", "application/json")
+  xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var json = JSON.parse(xhr.responseText);
+      callback(json)
+    }
+  };
+  xhr.send(JSON.stringify(jsonRequest));
+}
+ //-------------------------------------
+function simple_test_logger(response){
+  console.log(response);
+}
+
+function log_dialogue(user,content){
+  console.log(user+"\t"+content)
+  http_post(log_dialogue_url,{"userName":user,"content":content,"meetingId":momiser_meeting_id},simple_test_logger)
+}
+
+
+//------------------- Hackday functions End -------------------------
+
+
+
+
+
+
+
+
 
 
 
@@ -218,7 +294,7 @@ function process_realtime(new_obj)
   }
     
     else{
-    
+
     var  speaker1= get_speaker(old_obj);
     var  speaker2= get_speaker(new_obj);
     var  text1= get_text(old_obj);
@@ -270,27 +346,15 @@ function process_realtime(new_obj)
         zebra_css="rgba(121,0,107,0.15)";
 
       }
-      head.find('div').first().after("<div style='"+zebra_css+";'>Hello world "+loose_text+"</div><div style='float:right; max-width:24px;'><img style='cursor:pointer; max-width:24px;' class='inline_edit' src='"+chrome.runtime.getURL('scripts/edit.png')+"' /></div>");
+      current_speaker = head.find('div').first().html()
+      content = Object.assign({},{"val": loose_text});
+      head.find('div').first().after("<div style='"+zebra_css+";'>"+loose_text+"</div><div style='float:right; max-width:24px;'><img style='cursor:pointer; max-width:24px;' class='inline_edit' src='"+chrome.runtime.getURL('scripts/edit.png')+"' /></div>");
       head.find('div').first().css("display","inline");
       head.find('div').first().css("line-height","40px");
       head.find('div').first().css("vertical-align","text-bottom");
       head.find('div').first().html(head.find('div').first().html()+" - "+time);
       head.css("background-color",zebra_css);
-      var xhr = new XMLHttpRequest();
-      var url = "http://127.0.0.1:5000/meeting/logs/hi";
-      xhr.open("POST", url, true);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.setRequestHeader("Accept", "application/json")
-      xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          var json = JSON.parse(xhr.responseText);
-          console.log(json);
-        }
-      };
-      var data = JSON.stringify({"hello":123});
-      xhr.send(data);
-
+      log_dialogue(current_speaker,content["val"])
       loose_text='';
       var myEle = document.getElementById("notes");  
       if(head.text()!==""&&myEle)
@@ -328,7 +392,6 @@ function process_realtime(new_obj)
       
         //q2.find('div').first().append("<div>"+t1.substring(0,breaker)+"</div>")
         loose_text=loose_text+" "+t1.substring(0,breaker);
-        console.log("Hello world kitty : ");
         console.log(loose_text);
       //  console.log("p3 ..scroll");
         head=new_obj;
