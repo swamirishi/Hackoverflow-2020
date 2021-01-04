@@ -96,6 +96,7 @@ function log_dialogue(user,uuid){
 
 function alert_call(response){
   alert(JSON.stringify(response));
+  window.open(response["confluenceLink"])
 }
 function generate_mom(){
   return http_post(generate_mom_url.replace("{meeting_id}",momiser_meeting_id),{},alert_call)
